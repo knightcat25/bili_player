@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { getLiveRoomInfo, getLivePlayUrl } from '../api/live'
+import { proxyMedia } from '../utils/request'
 import type { LiveRoomInfo } from '../api/types'
 import styles from './Live.module.css'
 
@@ -137,7 +138,7 @@ export function LivePage() {
     return (
       <div className={styles.offline}>
         <div className={styles.offlineCard}>
-          <img src={roomInfo?.cover} alt="" className={styles.offlineCover} />
+          <img src={proxyMedia(roomInfo?.cover || '')} alt="" className={styles.offlineCover} />
           <h3>{roomInfo?.title || '直播间'}</h3>
           <p className={styles.offlineText}>
             {roomInfo?.live_status === 2 ? '轮播中' : '主播暂时不在家'}
