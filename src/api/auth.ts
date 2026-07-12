@@ -25,7 +25,7 @@ export async function getLoginUserInfo(): Promise<BiliResponse<UserInfo>> {
 export async function checkLogin(): Promise<boolean> {
   try {
     const res = await getLoginUserInfo()
-    return res.code === 0 && res.data.isLogin !== false
+    return res.code === 0 && (res.data as any).isLogin !== false
   } catch {
     return false
   }

@@ -65,7 +65,7 @@ export function VideoPlayer({ bvid, cid: initialCid }: Props) {
           controls onTimeUpdate={() => { const v = videoRef.current; if (v) setTime(v.currentTime) }}
           onDurationChange={() => { const v = videoRef.current; if (v) setDuration(v.duration) }}
           onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
-          crossOrigin="anonymous" referrerPolicy="no-referrer" playsInline />
+          crossOrigin="anonymous" {...({ referrerPolicy: 'no-referrer' } as any)} playsInline />
         <button className={styles.fsBtn} onClick={async () => {
           const el = videoRef.current; if (!el) return
           if (document.fullscreenElement) {

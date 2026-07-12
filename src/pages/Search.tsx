@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { searchVideos } from '../api/video'
 import { biliFetch } from '../utils/request'
 import { proxyMedia } from '../utils/request'
-import type { SearchResultItem } from '../api/types'
 import styles from './Search.module.css'
 
 const HOT_WORDS = ['原神', 'LOL', '鬼畜', 'VOCALOID', '单机游戏', '编程']
@@ -22,7 +21,7 @@ export function SearchPage() {
   const [error, setError] = useState<string | null>(null)
   const [mode, setMode] = useState<'video' | 'user'>('video')
 
-  const doSearch = (kw: string, pn: number) => {
+  const doSearch = (kw: string, pn: number): Promise<any[]> => {
     if (mode === 'user') {
       return biliFetch(`/x/web-interface/search/type?keyword=${encodeURIComponent(kw)}&search_type=bili_user&page=${pn}`)
         .then((res: any) => {
