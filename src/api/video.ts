@@ -31,7 +31,7 @@ export async function getVideoInfo(bvid: string): Promise<BiliResponse<VideoInfo
 export async function getVideoPlayUrl(
   bvid: string,
   cid: number,
-  quality = 32, // 480p — 5Mbps 服务器流畅播放
+  quality = 64, // 720p — 10Mbps 服务器
 ): Promise<BiliResponse<VideoPlayUrl>> {
   const params = new URLSearchParams({
     bvid,
