@@ -2,7 +2,6 @@ import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { createProxyMiddleware } from 'http-proxy-middleware'
-import httpProxy from 'http-proxy'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -29,24 +28,31 @@ app.use('/api/bilibili', apiProxy('https://api.bilibili.com','https://www.bilibi
 app.use('/api/passport', apiProxy('https://passport.bilibili.com','https://www.bilibili.com/'))
 app.use('/api/live', apiProxy('https://api.live.bilibili.com','https://live.bilibili.com/'))
 
-// CDN 代理 — 用 http-proxy 原生支持 Range 请求
-const cdnProxy = httpProxy.createProxyServer({ changeOrigin: true, secure: false })
-cdnProxy.on('proxyReq', (pr) => {
-  pr.setHeader('Referer', 'https://www.bilibili.com/')
-  pr.setHeader('Origin', 'https://www.bilibili.com')
-  pr.setHeader('User-Agent', 'Mozilla/5.0')
-})
-
-app.get('/api/cdn', (req, res) => {
-  let url = req.query.url
-  if (!url) return res.status(400).end()
-  if (url.startsWith('//')) url = 'https:' + url
-  if (!url.startsWith('http')) url = 'https://' + url
-
-  const { protocol, host, pathname, search } = new URL(url)
-  req.url = pathname + search
-  cdnProxy.web(req, res, { target: protocol + '//' + host, changeOrigin: true })
-})
+// CDN 代理 — http-proxy-middleware 路由模式，原生支持 Range
+app.use('/api/cdn', createProxyMiddleware({
+  router(req) {
+    const raw = new URL(req.url, 'http://localhost').searchParams.get('url')
+    if (!raw) return undefined
+    let url = raw.startsWith('//') ? 'https:' + raw : raw
+    if (!url.startsWith('http')) url = 'https://' + url
+    return new URL(url).origin
+  },
+  changeOrigin: true,
+  secure: false,
+  on: {
+    proxyReq(pr, req) {
+      const raw = new URL(req.url, 'http://localhost').searchParams.get('url')
+      if (!raw) return
+      let url = raw.startsWith('//') ? 'https:' + raw : raw
+      if (!url.startsWith('http')) url = 'https://' + url
+      const u = new URL(url)
+      pr.path = u.pathname + u.search
+      pr.setHeader('Referer', 'https://www.bilibili.com/')
+      pr.setHeader('Origin', 'https://www.bilibili.com')
+      pr.setHeader('User-Agent', 'Mozilla/5.0')
+    },
+  },
+}))
 
 app.use(express.static(path.join(__dirname, 'dist')))
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.html')))
