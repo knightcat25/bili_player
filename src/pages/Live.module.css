@@ -1,0 +1,149 @@
+.container {
+  max-width: 100%;
+}
+
+.playerWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.playerSkeleton {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.liveBadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  background: #ff4d4f;
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.noStream {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #fff;
+  text-align: center;
+  gap: 8px;
+  padding: 20px;
+}
+
+.noStreamHint {
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* Info */
+.info {
+  margin-top: 16px;
+  padding: 0 4px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.meta {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--bili-text-secondary);
+}
+
+/* Offline */
+.offline {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.offlineCard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: var(--bili-shadow);
+}
+
+.offlineCover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  filter: brightness(0.7);
+}
+
+.offlineCard h3 {
+  padding: 16px 16px 4px;
+  font-size: 16px;
+}
+
+.offlineText {
+  padding: 0 16px;
+  font-size: 14px;
+  color: var(--bili-text-secondary);
+}
+
+.offlineDesc {
+  padding: 8px 16px 16px;
+  font-size: 13px;
+  color: var(--bili-text-secondary);
+  line-height: 1.6;
+}
+
+/* Error */
+.error {
+  text-align: center;
+  padding: 40px;
+  color: #e74c3c;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .playerWrap {
+    border-radius: 0;
+    margin: -12px;
+    width: calc(100% + 24px);
+  }
+
+  .title {
+    font-size: 16px;
+  }
+}

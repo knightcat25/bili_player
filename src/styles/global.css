@@ -1,0 +1,116 @@
+/* 全局样式 - B站风格粉色主题 */
+:root {
+  --bili-pink: #fb7299;
+  --bili-pink-hover: #fc8bab;
+  --bili-blue: #00a1d6;
+  --bili-bg: #f4f5f7;
+  --bili-card: #ffffff;
+  --bili-text: #18191c;
+  --bili-text-secondary: #9499a0;
+  --bili-border: #e3e5e7;
+  --bili-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  --header-height: 56px;
+  --sidebar-width: 240px;
+  --max-content-width: 1280px;
+
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+  color: var(--bili-text);
+  background: var(--bili-bg);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+input {
+  font: inherit;
+  color: inherit;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c0c4cc;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 响应式断点 */
+@media (max-width: 768px) {
+  :root {
+    --header-height: 48px;
+  }
+}
+
+/* 通用按钮 */
+.btn-primary {
+  background: var(--bili-pink);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.btn-primary:hover {
+  background: var(--bili-pink-hover);
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 卡片 */
+.card {
+  background: var(--bili-card);
+  border-radius: 8px;
+  box-shadow: var(--bili-shadow);
+  overflow: hidden;
+}
+
+/* 骨架屏 */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}

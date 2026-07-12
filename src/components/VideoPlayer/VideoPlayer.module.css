@@ -1,0 +1,35 @@
+.container { width: 100% }
+.playerWrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden }
+.playerSkeleton { width: 100%; height: 100% }
+.video { width: 100%; height: 100%; object-fit: contain; display: block }
+.errorBox { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #fff; gap: 8px; text-align: center; padding: 20px }
+.errorHint { font-size: 13px; color: #aaa }
+
+.info { margin-top: 16px; padding: 0 4px }
+.title { font-size: 18px; font-weight: 600; line-height: 1.4; margin-bottom: 8px; word-break: break-word }
+.meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--bili-text-secondary); margin-bottom: 12px }
+.owner { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px }
+.ownerFace { width: 36px; height: 36px; border-radius: 50%; object-fit: cover }
+.desc { font-size: 13px; color: var(--bili-text-secondary); line-height: 1.6; white-space: pre-wrap; word-break: break-word; max-height: 120px; overflow-y: auto }
+
+.parts { margin-top: 12px }
+.partsLabel { font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px }
+.partsList { display: flex; flex-wrap: wrap; gap: 6px; max-height: 200px; overflow-y: auto }
+.partBtn { padding: 6px 14px; border-radius: 6px; font-size: 13px; background: #f1f2f3; color: var(--bili-text); border: 1px solid transparent; text-align: left; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.partBtn:hover { background: #e3e5e7 }
+.partActive { background: #fff0f3; color: var(--bili-pink); border-color: var(--bili-pink) }
+
+.fsBtn { position: absolute; bottom: 8px; right: 8px; z-index: 20; width: 32px; height: 32px; border-radius: 4px; font-size: 16px; background: rgba(0,0,0,0.5); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center }
+.fsBtn:hover { background: rgba(0,0,0,0.75) }
+
+@media (max-width: 768px) {
+  .playerWrap { border-radius: 0; margin: -12px; width: calc(100% + 24px) }
+  .title { font-size: 16px }
+  .fsBtn { bottom: 40px; width: 36px; height: 36px }
+}
+
+/* 全屏时让视频播放器占满屏幕 */
+.playerWrap:fullscreen { border-radius: 0; aspect-ratio: auto; width: 100vw; height: 100vh }
+.playerWrap:fullscreen .video { object-fit: contain }
+.playerWrap:-webkit-full-screen { border-radius: 0; aspect-ratio: auto; width: 100vw; height: 100vh }
+.playerWrap:-webkit-full-screen .video { object-fit: contain }
