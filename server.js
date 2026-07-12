@@ -54,7 +54,10 @@ app.get('/api/cdn', async (req, res) => {
     }
     if (req.headers.range) headers['Range'] = req.headers.range
 
-    const f = await fetch(url, { headers })
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 15000) // 15秒超时
+    const f = await fetch(url, { headers, signal: ctrl.signal })
+    clearTimeout(timer)
     if (!f.ok && f.status !== 206) return res.status(f.status).end()
 
     const ct = f.headers.get('content-type')

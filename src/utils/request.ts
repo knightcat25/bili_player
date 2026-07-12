@@ -6,9 +6,8 @@ const LIVE_BASE = '/api/live'
 // 图片/视频 CDN 代理：B站资源需要 Referer 才不会 403
 export function proxyMedia(url: string): string {
   if (!url) return url
-  const isBili = url.includes('hdslb.com') || url.includes('bilivideo.com') || url.includes('biliapi') || url.includes('biliapi.net')
+  const isBili = /hdslb\.com|bilivideo\.com|biliapi\.(com|net)|acgvideo\.com|biliapi\.net|b23\.tv/.test(url)
   if (!isBili) return url
-  // 补全协议
   let full = url
   if (full.startsWith('//')) full = 'https:' + full
   if (!full.startsWith('http')) full = 'https://' + full
