@@ -4,47 +4,59 @@ import { SearchBar } from '../components/Search/SearchBar'
 import { biliFetch, proxyMedia } from '../utils/request'
 import styles from './Home.module.css'
 
-interface PopularVideo { bvid: string; title: string; pic: string; owner: { name: string }; stat: { view: number; danmaku: number }; duration: string }
+interface Video { bvid: string; title: string; pic: string; owner: { name: string }; stat: { view: number; danmaku: number }; duration: string }
 
 export function HomePage() {
-  const [popular, setPopular] = useState<PopularVideo[]>([])
-  const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(false)
-  const [apiError, setApiError] = useState<string | null>(null)
   const navigate = useNavigate()
+
+  // 推荐
+  const [recs, setRecs] = useState<Video[]>([])
+  const [recLoading, setRecLoading] = useState(true)
+
+  // 热门
+  const [popular, setPopular] = useState<Video[]>([])
+  const [popLoading, setPopLoading] = useState(true)
+  const [popPage, setPopPage] = useState(1)
+  const [popMore, setPopMore] = useState(false)
   const sentinelRef = useRef<HTMLDivElement>(null)
 
-  const fetchPage = (pn: number) => {
+  // 加载推荐（随机刷新）
+  const fetchRecs = useCallback(() => {
+    setRecLoading(true)
+    const page = Math.floor(Math.random() * 10) + 1
+    biliFetch(`/x/web-interface/popular?ps=20&pn=${page}`)
+      .then((res: any) => { if (res.code === 0) setRecs(res.data?.list || []) })
+      .finally(() => setRecLoading(false))
+  }, [])
+
+  // 加载热门（分页）
+  const fetchPopular = (pn: number) => {
     return biliFetch(`/x/web-interface/popular?ps=20&pn=${pn}`)
       .then((res: any) => {
         if (res.code === 0) {
           setPopular(p => pn === 1 ? res.data?.list || [] : [...p, ...(res.data?.list || [])])
-          setHasMore((res.data?.list || []).length >= 20)
-          setPage(pn)
-        } else { setApiError(`B站API返回错误 code=${res.code}`) }
+          setPopMore((res.data?.list || []).length >= 20)
+          setPopPage(pn)
+        }
       })
-      .catch(err => { setApiError(`请求失败: ${err.message}`) })
-      .finally(() => setLoading(false))
+      .finally(() => setPopLoading(false))
   }
 
   const loadMore = useCallback(() => {
-    if (loading) return
-    setLoading(true)
-    fetchPage(page + 1)
-  }, [page, loading])
+    if (popLoading) return
+    setPopLoading(true)
+    fetchPopular(popPage + 1)
+  }, [popPage, popLoading])
 
-  useEffect(() => { fetchPage(1) }, [])
+  useEffect(() => { fetchRecs(); fetchPopular(1) }, [])
 
   useEffect(() => {
-    if (!hasMore) return
+    if (!popMore) return
     const el = sentinelRef.current; if (!el) return
     const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) loadMore() }, { rootMargin: '200px' })
     obs.observe(el)
     return () => obs.disconnect()
-  }, [hasMore, loadMore])
-
-  const refresh = () => { setLoading(true); setPage(1); fetchPage(1) }
+  }, [popMore, loadMore])
 
   return (
     <div className={styles.container}>
@@ -60,14 +72,37 @@ export function HomePage() {
         </div>
       </div>
 
+      {/* 推荐 */}
+      <section style={{ marginBottom: 32 }}>
+        <h2 className={styles.sectionTitle}>📺 猜你喜欢 <button className={styles.refreshBtn} onClick={fetchRecs} disabled={recLoading}>🔄</button></h2>
+        {recLoading && <div className={styles.grid}>{Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className={styles.card}><div className={`skeleton ${styles.thumb}`} /><div className={styles.cardInfo}><div className="skeleton" style={{ height: 20, marginBottom: 8 }} /><div className="skeleton" style={{ height: 16, width: '60%' }} /></div></div>
+        ))}</div>}
+        <div className={styles.grid}>
+          {recs.map(item => (
+            <Link key={item.bvid} to={`/video/${item.bvid}`} className={styles.card}>
+              <div className={styles.thumbWrap}>
+                <img src={proxyMedia(item.pic)} alt={item.title} className={styles.thumb} loading="lazy" />
+                <span className={styles.duration}>{fmtDur(item.duration)}</span>
+                <span className={styles.viewBadge}>▶ {fmt(item.stat.view)}</span>
+              </div>
+              <div className={styles.cardInfo}>
+                <h3 className={styles.cardTitle}>{item.title}</h3>
+                <span className={styles.cardAuthor}>{item.owner.name}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* 热门 */}
       <section>
-        <h2 className={styles.sectionTitle}>🔥 热门视频 <button className={styles.refreshBtn} onClick={refresh} disabled={loading}>🔄</button></h2>
-        {loading && popular.length === 0 && (
+        <h2 className={styles.sectionTitle}>🔥 热门视频 <button className={styles.refreshBtn} onClick={() => { setPopLoading(true); fetchPopular(1) }} disabled={popLoading}>🔄</button></h2>
+        {popLoading && popular.length === 0 && (
           <div className={styles.grid}>{Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className={styles.card}><div className={`skeleton ${styles.thumb}`} /><div className={styles.cardInfo}><div className="skeleton" style={{ height: 20, marginBottom: 8 }} /><div className="skeleton" style={{ height: 16, width: '60%' }} /></div></div>
           ))}</div>
         )}
-        {apiError && <div className={styles.apiError}><p>⚠️ 热门数据加载失败</p><p className={styles.apiErrorDetail}>{apiError}</p></div>}
         <div className={styles.grid}>
           {popular.map(item => (
             <Link key={item.bvid} to={`/video/${item.bvid}`} className={styles.card}>
@@ -83,8 +118,8 @@ export function HomePage() {
             </Link>
           ))}
         </div>
-        {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
-        {loading && popular.length > 0 && <p style={{ textAlign: 'center', padding: 16, color: '#999' }}>加载中...</p>}
+        {popMore && <div ref={sentinelRef} style={{ height: 1 }} />}
+        {popLoading && popular.length > 0 && <p style={{ textAlign: 'center', padding: 16, color: '#999' }}>加载中...</p>}
       </section>
     </div>
   )
