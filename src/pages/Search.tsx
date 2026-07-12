@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { searchVideos } from '../api/video'
 import { biliFetch } from '../utils/request'
@@ -6,7 +6,6 @@ import { proxyMedia } from '../utils/request'
 import styles from './Search.module.css'
 
 const HOT_WORDS = ['原神', 'LOL', '鬼畜', 'VOCALOID', '单机游戏', '编程']
-
 function stripHtml(s: string) { return s?.replace(/<[^>]+>/g, '') || '' }
 function fmt(n: number) { return n >= 10000 ? (n / 10000).toFixed(1) + '万' : String(n) }
 
@@ -20,21 +19,14 @@ export function SearchPage() {
   const [hasMore, setHasMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mode, setMode] = useState<'video' | 'user'>('video')
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
   const doSearch = (kw: string, pn: number): Promise<any[]> => {
     if (mode === 'user') {
       return biliFetch(`/x/web-interface/search/type?keyword=${encodeURIComponent(kw)}&search_type=bili_user&page=${pn}`)
         .then((res: any) => {
           if (res.code !== 0) throw new Error(res.message)
-          return (res.data?.result || []).map((u: any) => ({
-            type: 'user',
-            mid: u.mid,
-            uname: u.uname,
-            face: u.upic || u.face,
-            sign: u.usign || '',
-            fans: u.fans || 0,
-            videos: u.videos || 0,
-          }))
+          return (res.data?.result || []).map((u: any) => ({ type: 'user', mid: u.mid, uname: u.uname, face: u.upic || u.face, sign: u.usign || '', fans: u.fans || 0, videos: u.videos || 0 }))
         })
     }
     return searchVideos(kw, pn).then(res => {
@@ -49,17 +41,27 @@ export function SearchPage() {
     if (!keyword) return
     setLoading(true); setError(null); setPage(1)
     doSearch(keyword, 1)
-      .then((data: any[]) => { setResults(data); setHasMore(data.length >= 20) })
+      .then(data => { setResults(data); setHasMore(data.length >= 20) })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
   }, [keyword, mode])
 
-  const loadMore = () => {
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return
     const next = page + 1; setLoadingMore(true)
     doSearch(keyword, next)
-      .then((data: any[]) => { setResults(p => [...p, ...data]); setPage(next); setHasMore(data.length >= 20) })
+      .then(data => { setResults(p => [...p, ...data]); setPage(next); setHasMore(data.length >= 20) })
       .finally(() => setLoadingMore(false))
-  }
+  }, [keyword, page, loadingMore, hasMore, mode])
+
+  // 无限滚动
+  useEffect(() => {
+    if (!hasMore) return
+    const el = sentinelRef.current; if (!el) return
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) loadMore() }, { rootMargin: '200px' })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [hasMore, loadMore])
 
   if (!keyword) {
     return (
@@ -75,17 +77,14 @@ export function SearchPage() {
   return (
     <div className={styles.container}>
       <h2 className={styles.heading}>搜索: {keyword}</h2>
-
       <div className={styles.modeBar}>
         <button className={`${styles.modeBtn} ${mode === 'video' ? styles.modeActive : ''}`} onClick={() => setMode('video')}>视频</button>
         <button className={`${styles.modeBtn} ${mode === 'user' ? styles.modeActive : ''}`} onClick={() => setMode('user')}>UP主</button>
       </div>
-
       {loading && <div className={styles.grid}>{Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className={styles.card}><div className={`skeleton ${styles.thumb}`} /><div className={styles.cardInfo}><div className="skeleton" style={{ height: 20, marginBottom: 8 }} /><div className="skeleton" style={{ height: 16, width: '60%' }} /></div></div>
       ))}</div>}
       {error && <p className={styles.error}>{error}</p>}
-
       {!loading && !error && (
         <>
           {mode === 'video' ? (
@@ -117,11 +116,8 @@ export function SearchPage() {
               ))}
             </div>
           )}
-          {hasMore && (
-            <button className={styles.loadMoreBtn} onClick={loadMore} disabled={loadingMore}>
-              {loadingMore ? '加载中...' : '加载更多'}
-            </button>
-          )}
+          {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
+          {loadingMore && <p style={{ textAlign: 'center', padding: 16, color: '#999' }}>加载中...</p>}
         </>
       )}
       {!loading && !error && results.length === 0 && <p className={styles.noResults}>未找到结果</p>}
