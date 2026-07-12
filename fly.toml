@@ -1,0 +1,21 @@
+app = "bili-player"
+primary_region = "hkg"
+
+[build]
+  builder = "node"
+
+[env]
+  PORT = "3000"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "10s"
+    timeout = "2s"
+    method = "get"
+    path = "/"
