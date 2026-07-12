@@ -40,8 +40,8 @@ export function SearchPage() {
     return searchVideos(kw, pn).then(res => {
       if (res.code !== 0) throw new Error(res.message)
       const groups = res.data.result || []
-      const vg = groups.find((g: any) => g.type === 'video')
-      return vg?.data || groups.reduce((a: any, b: any) => (a.data?.length || 0) > (b.data?.length || 0) ? a : b, groups[0])?.data || []
+      const vg = groups.find((g: any) => g.type === 'video') as any
+      return (vg?.data as any[]) || (groups.reduce((a: any, b: any) => (a.data?.length || 0) > (b.data?.length || 0) ? a : b, groups[0])?.data || [])
     })
   }
 
