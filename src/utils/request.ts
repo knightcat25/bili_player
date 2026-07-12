@@ -3,15 +3,12 @@ const API_BASE = '/api/bilibili'
 const PASSPORT_BASE = '/api/passport'
 const LIVE_BASE = '/api/live'
 
-// 图片/视频走 CDN 代理（B站 CDN 需要 bilibili.com Referer）
+// 图片直连 B站 CDN（不走服务器代理）
 export function proxyMedia(url: string): string {
   if (!url) return url
   let full = url
   if (full.startsWith('//')) full = 'https:' + full
   if (!full.startsWith('http')) full = 'https://' + full
-  if (/hdslb|bilivideo|biliapi|acgvideo|b23\.tv/.test(full)) {
-    return `/api/cdn?url=${encodeURIComponent(full)}`
-  }
   return full
 }
 
