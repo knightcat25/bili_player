@@ -1,17 +1,14 @@
-// B站 API — Vite 内嵌代理转发
+// B站 API — 通过服务器代理转发
 const API_BASE = '/api/bilibili'
 const PASSPORT_BASE = '/api/passport'
 const LIVE_BASE = '/api/live'
 
-// 图片/视频 CDN 代理：B站资源需要 Referer 才不会 403
+// 图片 URL 补全协议即可（公网部署直连 B站 CDN）
 export function proxyMedia(url: string): string {
   if (!url) return url
-  const isBili = /hdslb\.com|bilivideo\.com|biliapi\.(com|net)|acgvideo\.com|biliapi\.net|b23\.tv/.test(url)
-  if (!isBili) return url
-  let full = url
-  if (full.startsWith('//')) full = 'https:' + full
-  if (!full.startsWith('http')) full = 'https://' + full
-  return `/api/cdn?url=${encodeURIComponent(full)}`
+  if (url.startsWith('//')) return 'https:' + url
+  if (!url.startsWith('http') && !url.startsWith('//')) return 'https://' + url
+  return url
 }
 
 export async function biliFetch<T = any>(
@@ -22,10 +19,7 @@ export async function biliFetch<T = any>(
   const url = `${base}${path}`
   const res = await fetch(url, {
     ...options,
-    headers: {
-      Accept: 'application/json',
-      ...(options.headers || {}),
-    },
+    headers: { Accept: 'application/json', ...(options.headers || {}) },
     credentials: 'include',
     referrerPolicy: 'no-referrer',
   })
@@ -45,15 +39,9 @@ export async function biliFetch<T = any>(
 }
 
 export async function passportFetch<T = any>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
-  return biliFetch<T>(path, options, PASSPORT_BASE)
-}
+  path: string, options: RequestInit = {},
+): Promise<T> { return biliFetch<T>(path, options, PASSPORT_BASE) }
 
 export async function liveFetch<T = any>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
-  return biliFetch<T>(path, options, LIVE_BASE)
-}
+  path: string, options: RequestInit = {},
+): Promise<T> { return biliFetch<T>(path, options, LIVE_BASE) }
