@@ -28,25 +28,23 @@ app.use('/api/bilibili', apiProxy('https://api.bilibili.com','https://www.bilibi
 app.use('/api/passport', apiProxy('https://passport.bilibili.com','https://www.bilibili.com/'))
 app.use('/api/live', apiProxy('https://api.live.bilibili.com','https://live.bilibili.com/'))
 
-// CDN 代理 — http-proxy-middleware 路由模式，原生支持 Range
-app.use('/api/cdn', createProxyMiddleware({
-  router(req) {
-    const raw = new URL(req.url, 'http://localhost').searchParams.get('url')
-    if (!raw) return undefined
-    let url = raw.startsWith('//') ? 'https:' + raw : raw
-    if (!url.startsWith('http')) url = 'https://' + url
-    return new URL(url).origin
-  },
+// CDN 代理 — 先解析 URL，再动态代理
+app.use('/api/cdn', (req, res, next) => {
+  const raw = new URL(req.url, 'http://localhost').searchParams.get('url')
+  if (!raw) return res.status(400).end()
+  let url = raw.startsWith('//') ? 'https:' + raw : raw
+  if (!url.startsWith('http')) url = 'https://' + url
+  const u = new URL(url)
+  req._cdnTarget = u.origin
+  req._cdnPath = u.pathname + u.search
+  next()
+}, createProxyMiddleware({
+  router: (req) => req._cdnTarget,
   changeOrigin: true,
   secure: false,
   on: {
     proxyReq(pr, req) {
-      const raw = new URL(req.url, 'http://localhost').searchParams.get('url')
-      if (!raw) return
-      let url = raw.startsWith('//') ? 'https:' + raw : raw
-      if (!url.startsWith('http')) url = 'https://' + url
-      const u = new URL(url)
-      pr.path = u.pathname + u.search
+      pr.path = req._cdnPath
       pr.setHeader('Referer', 'https://www.bilibili.com/')
       pr.setHeader('Origin', 'https://www.bilibili.com')
       pr.setHeader('User-Agent', 'Mozilla/5.0')
