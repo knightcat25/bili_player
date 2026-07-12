@@ -150,28 +150,21 @@
 
 /* Mobile */
 @media (max-width: 768px) {
-  .headerInner {
-    padding: 0 12px;
-    gap: 10px;
-  }
+  :root { --header-height: 44px }
 
-  .logoText {
-    display: none;
-  }
+  .headerInner { padding: 0 8px; gap: 6px }
 
-  .searchWrap {
-    max-width: none;
-  }
+  .logoText { display: none }
+  .logo { font-size: 16px }
 
-  .username {
-    display: none;
-  }
+  .searchWrap { max-width: none }
 
-  .content {
-    padding: 12px;
-  }
+  .username { display: none }
+  .navLink { font-size: 11px; padding: 3px 6px }
 
-  .modal {
-    padding: 24px 20px;
-  }
+  .avatar { width: 26px; height: 26px }
+
+  .content { padding: 8px }
+
+  .modal { padding: 24px 20px }
 }

@@ -15,7 +15,7 @@ export function VideoPlayer({ bvid, cid: initialCid }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentCid, setCurrentCid] = useState(initialCid || 0)
-  const { danmakuEnabled, danmakuOpacity, danmakuSize, setTime, setDuration, setPlaying, setVideo } = usePlayerStore()
+  const { danmakuEnabled, danmakuOpacity, danmakuSize, setTime, setDuration, setPlaying, setVideo, toggleDanmaku } = usePlayerStore()
 
   useEffect(() => {
     if (!bvid) return
@@ -30,7 +30,7 @@ export function VideoPlayer({ bvid, cid: initialCid }: Props) {
         const c = currentCid || res.data.cid
         if (c !== currentCid) setCurrentCid(c)
         setVideo(bvid, c, res.data.title)
-        return getVideoPlayUrl(bvid, c, 80)
+        return getVideoPlayUrl(bvid, c)
       })
       .then(async res => {
         if (res.code !== 0) throw new Error(res.message)
@@ -87,6 +87,9 @@ export function VideoPlayer({ bvid, cid: initialCid }: Props) {
             try { (el as any).webkitEnterFullscreen?.() } catch {}
           }
         }} title="横屏全屏">⛶</button>
+        <button className={styles.dmBtn} onClick={toggleDanmaku} title={danmakuEnabled ? '关闭弹幕' : '开启弹幕'}>
+          {danmakuEnabled ? '弹' : <span style={{opacity:0.4}}>弹</span>}
+        </button>
         {danmakuEnabled && danmaku.length > 0 && (
           <DanmakuLayer items={danmaku} opacity={danmakuOpacity} fontSize={danmakuSize} videoRef={videoRef} />
         )}
