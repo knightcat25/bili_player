@@ -1,4 +1,4 @@
-import { createHashRouter, RouterProvider, Outlet } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
 import { Layout } from './components/Layout/Layout'
 import { HomePage } from './pages/Home'
 import { VideoPage } from './pages/Video'
@@ -24,7 +24,7 @@ function AppLayout() {
   )
 }
 
-const router = createHashRouter([
+const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [

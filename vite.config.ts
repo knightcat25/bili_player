@@ -17,7 +17,6 @@ function rewriteCookies(proxyRes: any) {
 }
 
 export default defineConfig({
-  base: '/bili_player/',
   plugins: [
     react(),
     {
