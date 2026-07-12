@@ -2,6 +2,7 @@ import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { createProxyMiddleware } from 'http-proxy-middleware'
+import httpProxy from 'http-proxy'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -28,32 +29,23 @@ app.use('/api/bilibili', apiProxy('https://api.bilibili.com','https://www.bilibi
 app.use('/api/passport', apiProxy('https://passport.bilibili.com','https://www.bilibili.com/'))
 app.use('/api/live', apiProxy('https://api.live.bilibili.com','https://live.bilibili.com/'))
 
-app.get('/api/cdn', async (req, res) => {
+// CDN 代理 — 用 http-proxy 原生支持 Range 请求
+const cdnProxy = httpProxy.createProxyServer({ changeOrigin: true, secure: false })
+cdnProxy.on('proxyReq', (pr) => {
+  pr.setHeader('Referer', 'https://www.bilibili.com/')
+  pr.setHeader('Origin', 'https://www.bilibili.com')
+  pr.setHeader('User-Agent', 'Mozilla/5.0')
+})
+
+app.get('/api/cdn', (req, res) => {
   let url = req.query.url
   if (!url) return res.status(400).end()
   if (url.startsWith('//')) url = 'https:' + url
   if (!url.startsWith('http')) url = 'https://' + url
 
-  try {
-    const ctrl = new AbortController()
-    setTimeout(() => ctrl.abort(), 25000) // 25s 超时
-    const f = await fetch(url, {
-      headers: { Referer:'https://www.bilibili.com/', Origin:'https://www.bilibili.com', 'User-Agent':'Mozilla/5.0' },
-      signal: ctrl.signal,
-    })
-    if (!f.ok && f.status !== 206) return res.redirect(url)
-    if (f.body) {
-      const ct = f.headers.get('content-type'); if (ct) res.set('Content-Type', ct)
-      const cl = f.headers.get('content-length'); if (cl) res.set('Content-Length', cl)
-      res.status(f.status)
-      const reader = f.body.getReader()
-      for (;;) { const { done, value } = await reader.read(); if (done) break; res.write(value) }
-    }
-    res.end()
-  } catch {
-    // 代理失败 → 重定向到原 URL（浏览器直连兜底）
-    res.redirect(url)
-  }
+  const { protocol, host, pathname, search } = new URL(url)
+  req.url = pathname + search
+  cdnProxy.web(req, res, { target: protocol + '//' + host, changeOrigin: true })
 })
 
 app.use(express.static(path.join(__dirname, 'dist')))
