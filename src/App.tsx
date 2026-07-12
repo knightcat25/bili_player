@@ -40,5 +40,21 @@ const router = createBrowserRouter([
 ])
 
 export default function App() {
+  // 图片代理失败时自动重试直连
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const img = e.target as HTMLImageElement
+      if (img.tagName !== 'IMG') return
+      const src = img.getAttribute('src') || ''
+      const m = src.match(/\/api\/cdn\?url=(.+)/)
+      if (m && !img.dataset.retried) {
+        img.dataset.retried = '1'
+        img.src = decodeURIComponent(m[1])
+      }
+    }
+    document.addEventListener('error', handler, true)
+    return () => document.removeEventListener('error', handler, true)
+  }, [])
+
   return <RouterProvider router={router} />
 }
